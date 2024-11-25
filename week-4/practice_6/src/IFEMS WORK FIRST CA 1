@@ -1,0 +1,166 @@
+use std::io;
+
+#[derive(Debug)]
+struct Sibling {
+    name: String,
+    age: u32,
+    gender: String,
+    country_of_residence: String,
+    marital_status: Option<String>,
+    children: Option<Vec<Child>>,
+    job: Option<Job>,
+    study: Option<Study>,
+    waec_details: Option<WAEC>,
+}
+
+#[derive(Debug)]
+struct Child {
+    name: String,
+    age: u32,
+    school_or_daycare: String,
+}
+
+#[derive(Debug)]
+struct Job {
+    company_name: String,
+    job_title: String,
+    industry_sector: String,
+    job_type: String, // Remote, On-site, or Hybrid
+}
+
+#[derive(Debug)]
+struct Study {
+    university: String,
+    course_of_study: String,
+    year_of_study: u32,
+    study_location: String, // Home country or abroad
+}
+
+#[derive(Debug)]
+struct WAEC {
+    school: String,
+    final_grade: String,
+    year_of_completion: Option<u32>,
+    planned_year: Option<u32>,
+}
+
+fn main() {
+    let mut input = String::new();
+    println!("Enter the number of siblings:");
+    io::stdin().read_line(&mut input).unwrap();
+    let num_siblings: u32 = input.trim().parse().unwrap();
+
+    let mut siblings: Vec<Sibling> = Vec::new();
+
+    for i in 0..num_siblings {
+        println!("Enter details for sibling {}:", i + 1);
+
+        // Collect basic details
+        let name = get_input("First name");
+        let age: u32 = get_input("Age").trim().parse().unwrap();
+        let gender = get_input("Gender");
+        let country_of_residence = get_input("Country of residence");
+
+        let mut sibling = Sibling {
+            name,
+            age,
+            gender,
+            country_of_residence,
+            marital_status: None,
+            children: None,
+            job: None,
+            study: None,
+            waec_details: None,
+        };
+
+        // Age-based questions
+        if age >= 18 {
+            sibling.marital_status = Some(get_input("Is the sibling married, single, or in a relationship?"));
+            if sibling.marital_status.as_ref().unwrap() == "married" {
+                // Collect children details
+                let mut children: Vec<Child> = Vec::new();
+                let num_children: u32 = get_input("How many children?").trim().parse().unwrap();
+                for j in 0..num_children {
+                    println!("Enter details for child {}:", j + 1);
+                    let child_name = get_input("Child's name");
+                    let child_age: u32 = get_input("Child's age").trim().parse().unwrap();
+                    let school_or_daycare = get_input("School or daycare name");
+                    children.push(Child {
+                        name: child_name,
+                        age: child_age,
+                        school_or_daycare,
+                    });
+                }
+                sibling.children = Some(children);
+            }
+
+            // Collect study or work details if single
+            if sibling.marital_status.as_ref().unwrap() == "single" {
+                let status = get_input("Is the sibling a student or employed?");
+                if status == "student" {
+                    let university = get_input("University name");
+                    let course_of_study = get_input("Course of study");
+                    let year_of_study: u32 = get_input("Year of study").trim().parse().unwrap();
+                    let study_location = get_input("Is the study in home country or abroad?");
+                    sibling.study = Some(Study {
+                        university,
+                        course_of_study,
+                        year_of_study,
+                        study_location,
+                    });
+                } else if status == "employed" {
+                    let company_name = get_input("Company name");
+                    let job_title = get_input("Job title");
+                    let industry_sector = get_input("Industry sector");
+                    let job_type = get_input("Is the job remote, on-site, or hybrid?");
+                    sibling.job = Some(Job {
+                        company_name,
+                        job_title,
+                        industry_sector,
+                        job_type,
+                    });
+                }
+            }
+        } else {
+            // Collect WAEC details for siblings under 18
+            let waec_completed = get_input("Has the sibling completed WAEC? (yes/no)");
+            if waec_completed.to_lowercase() == "yes" {
+                let school = get_input("School attended");
+                let final_grade = get_input("Final grade");
+                let year_of_completion: u32 = get_input("Year of completion").trim().parse().unwrap();
+                sibling.waec_details = Some(WAEC {
+                    school,
+                    final_grade,
+                    year_of_completion: Some(year_of_completion),
+                    planned_year: None,
+                });
+            } else {
+                let current_class = get_input("Current class level");
+                let plans_for_waec = get_input("Does the sibling plan to take WAEC soon? (yes/no)");
+                if plans_for_waec.to_lowercase() == "yes" {
+                    let planned_year: u32 = get_input("Planned year").trim().parse().unwrap();
+                    sibling.waec_details = Some(WAEC {
+                        school: current_class,
+                        final_grade: String::new(),
+                        year_of_completion: None,
+                        planned_year: Some(planned_year),
+                    });
+                }
+            }
+        }
+
+        siblings.push(sibling);
+    }
+
+    // Display collected information
+    for sibling in siblings {
+        println!("{:?}", sibling);
+    }
+}
+
+fn get_input(prompt: &str) -> String {
+    let mut input = String::new();
+    println!("{}:", prompt);
+    io::stdin().read_line(&mut input).unwrap();
+    input.trim().to_string()
+}
